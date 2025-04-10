@@ -3,11 +3,25 @@ import { ENV } from "./constants/environment";
 import { logger } from "./utils/logger";
 import { authRouter } from "./routes/auth.route";
 import { CODES } from "./constants/status.code";
+import { passport } from "./utils/passport";
+import { db } from "./utils/database";
 
 const app = express();
+db();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
 app.use("/auth", authRouter);
 
+app.get(
+  "/profile",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    console.log("profile reaching");
+    res.json({ message: "This is a protected profile route", user: req.user });
+  }
+);
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(CODES.NOT_FOUND).json({
     error: {
