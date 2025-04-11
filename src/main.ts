@@ -5,15 +5,18 @@ import { authRouter } from "./routes/auth.route";
 import { CODES } from "./constants/status.code";
 import { passport } from "./utils/passport";
 import { db } from "./utils/database";
-
+import helmet from "helmet";
+import cors from "cors";
 const app = express();
-db();
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(helmet());
 app.use(passport.initialize());
 
-app.use("/auth", authRouter);
+db();
 
+app.use("/auth", authRouter);
 app.get(
   "/profile",
   passport.authenticate("jwt", { session: false }),
