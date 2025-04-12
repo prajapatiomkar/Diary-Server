@@ -7,12 +7,15 @@ import { passport } from "./utils/passport";
 import { db } from "./utils/database";
 import helmet from "helmet";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(passport.initialize());
+app.use(cookieParser());
 
 db();
 

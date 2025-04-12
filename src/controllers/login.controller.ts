@@ -5,17 +5,35 @@ import { ENV } from "../constants/environment";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { User } from "../models/user.model";
 
+interface LoginRequestBody {
+  email: string;
+  password: string;
+}
 const loginController = async (
-  req: Request,
+  req: Request<{}, {}, LoginRequestBody>,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
-    console.log(user);
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      res.status(401).json({ message: "Invalid credentials" });
+    if (!user) {
+      res.status(CODES.UNAUTHORIZED).json({
+        message: "Invalid credentials.",
+      });
+      return;
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user?.password as string
+    );
+
+    if (!isPasswordValid) {
+      res.status(CODES.UNAUTHORIZED).json({
+        message: "Invalid credentials.",
+      });
       return;
     }
 
@@ -23,7 +41,22 @@ const loginController = async (
       expiresIn: ENV.JWT_EXPIRES_IN,
     } as SignOptions);
 
-    res.status(CODES.CREATED).json({ token });
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: ENV.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .status(CODES.OK)
+      .json({
+        message: "Login successful.",
+        user: {
+          id: user._id,
+          email: user.email,
+          username: user.username,
+        },
+      });
   } catch (error) {
     next(error);
   }

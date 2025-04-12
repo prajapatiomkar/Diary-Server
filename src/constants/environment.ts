@@ -8,4 +8,5 @@ export const ENV = {
   JWT_SECRET: process.env.JWT_SECRET as PrivateKey,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN as string,
   MONGO_URI: process.env.MONGO_URI as string,
+  NODE_ENV: process.env.NODE_ENV as string,
 };
